@@ -1,0 +1,339 @@
+Resources:
+  UrlShortnerBucketDCC94818:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        ErrorDocument: error.html
+        IndexDocument: index.html
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortnerBucket/Resource
+  UrlShortenerFunctionServiceRole2FBF9CDA:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerFunction/ServiceRole/Resource
+  UrlShortenerFunctionServiceRoleDefaultPolicy7208731A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - UrlShortnerBucketDCC94818
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - UrlShortnerBucketDCC94818
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+      PolicyName: UrlShortenerFunctionServiceRoleDefaultPolicy7208731A
+      Roles:
+        - Ref: UrlShortenerFunctionServiceRole2FBF9CDA
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerFunction/ServiceRole/DefaultPolicy/Resource
+  UrlShortenerFunctionB5E87AC1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2S3Bucket3C9F3102
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2S3VersionKey19D688F3
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2S3VersionKey19D688F3
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - UrlShortenerFunctionServiceRole2FBF9CDA
+          - Arn
+      Runtime: nodejs12.x
+      Environment:
+        Variables:
+          BUCKET_NAME:
+            Ref: UrlShortnerBucketDCC94818
+          DOMAIN:
+            Fn::Join:
+              - ""
+              - - http://
+                - Fn::Select:
+                    - 2
+                    - Fn::Split:
+                        - /
+                        - Fn::GetAtt:
+                            - UrlShortnerBucketDCC94818
+                            - WebsiteURL
+    DependsOn:
+      - UrlShortenerFunctionServiceRoleDefaultPolicy7208731A
+      - UrlShortenerFunctionServiceRole2FBF9CDA
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerFunction/Resource
+      aws:asset:path: /Users/darrenh/code/ts/cdk-constructs/url-shortener/dist/index.zip
+      aws:asset:property: Code
+  UrlShortenerRestApi028DB120:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: Url Shortening API
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Resource
+  UrlShortenerRestApiDeployment00210941eb5654809f24aa858e808c68863c762d:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: UrlShortenerRestApi028DB120
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - UrlShortenerRestApilinksPUT6C0BBCB6
+      - UrlShortenerRestApilinks2ABFF6A3
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Deployment/Resource
+  UrlShortenerRestApiDeploymentStagedev9439EEA3:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: UrlShortenerRestApi028DB120
+      DeploymentId:
+        Ref: UrlShortenerRestApiDeployment00210941eb5654809f24aa858e808c68863c762d
+      StageName: dev
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/DeploymentStage.dev/Resource
+  UrlShortenerRestApiCloudWatchRoleBD479E95:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/CloudWatchRole/Resource
+  UrlShortenerRestApiAccountEBC157D5:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - UrlShortenerRestApiCloudWatchRoleBD479E95
+          - Arn
+    DependsOn:
+      - UrlShortenerRestApi028DB120
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Account
+  UrlShortenerRestApilinks2ABFF6A3:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - UrlShortenerRestApi028DB120
+          - RootResourceId
+      PathPart: links
+      RestApiId:
+        Ref: UrlShortenerRestApi028DB120
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Default/links/Resource
+  UrlShortenerRestApilinksPUTApiPermissionUrlShortenerStackUrlShortenerRestApi0DE41A46PUTlinks14173807:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - UrlShortenerFunctionB5E87AC1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: UrlShortenerRestApi028DB120
+            - /
+            - Ref: UrlShortenerRestApiDeploymentStagedev9439EEA3
+            - /PUT/links
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Default/links/PUT/ApiPermission.UrlShortenerStackUrlShortenerRestApi0DE41A46.PUT..links
+  UrlShortenerRestApilinksPUTApiPermissionTestUrlShortenerStackUrlShortenerRestApi0DE41A46PUTlinks759F3169:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - UrlShortenerFunctionB5E87AC1
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: UrlShortenerRestApi028DB120
+            - /test-invoke-stage/PUT/links
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Default/links/PUT/ApiPermission.Test.UrlShortenerStackUrlShortenerRestApi0DE41A46.PUT..links
+  UrlShortenerRestApilinksPUT6C0BBCB6:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: PUT
+      ResourceId:
+        Ref: UrlShortenerRestApilinks2ABFF6A3
+      RestApiId:
+        Ref: UrlShortenerRestApi028DB120
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - UrlShortenerFunctionB5E87AC1
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: UrlShortenerStack/UrlShortenerRestApi/Default/links/PUT/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.20.0,@aws-cdk/assets=1.20.0,@aws-cdk/aws-apigateway=1.20.0,@aws-cdk/aws-cloudwatch=1.20.0,@aws-cdk/aws-ec2=1.20.0,@aws-cdk/aws-events=1.20.0,@aws-cdk/aws-iam=1.20.0,@aws-cdk/aws-kms=1.20.0,@aws-cdk/aws-lambda=1.20.0,@aws-cdk/aws-s3=1.20.0,@aws-cdk/aws-s3-assets=1.20.0,@aws-cdk/aws-sqs=1.20.0,@aws-cdk/aws-ssm=1.20.0,@aws-cdk/core=1.20.0,@aws-cdk/cx-api=1.20.0,@aws-cdk/region-info=1.20.0,jsii-runtime=node.js/v10.16.3
+    Condition: CDKMetadataAvailable
+Parameters:
+  AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2S3Bucket3C9F3102:
+    Type: String
+    Description: S3 bucket for asset "124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2"
+  AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2S3VersionKey19D688F3:
+    Type: String
+    Description: S3 key for asset version "124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2"
+  AssetParameters124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2ArtifactHashEB237A8A:
+    Type: String
+    Description: Artifact hash for asset "124559081781d8e068b88ae9271dafb2df6e1a0e699aa293c80d6a82ee503cb2"
+Outputs:
+  UrlShortenerRestApiEndpoint4E2B6475:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: UrlShortenerRestApi028DB120
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: UrlShortenerRestApiDeploymentStagedev9439EEA3
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+
