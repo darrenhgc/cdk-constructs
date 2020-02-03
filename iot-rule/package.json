@@ -1,0 +1,33 @@
+{
+  "name": "iot-rule",
+  "version": "0.1.0",
+  "bin": {
+    "iot-rule": "bin/iot-rule.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "clean": "rm -r dist/*",
+    "compress": "zip -r -j dist/index.zip dist/*",
+    "package": "npx parcel build lib/functions/index.ts --target=node --global handler -o index.js --bundle-node-modules --no-source-maps",
+    "deploy": "npm run clean && npm run package && npm run compress && cdk deploy"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "^1.22.0",
+    "@types/jest": "^25.1.1",
+    "@types/node": "^13.7.0",
+    "aws-cdk": "^1.22.0",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.1.0",
+    "ts-node": "^8.6.2",
+    "typescript": "~3.7.5"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-iot": "^1.22.0",
+    "@aws-cdk/aws-lambda": "^1.22.0",
+    "@aws-cdk/core": "^1.22.0",
+    "source-map-support": "^0.5.16"
+  }
+}
